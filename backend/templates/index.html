@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stroke Risk Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-weight: 400;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-container.high-risk {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+        }
+
+        .result-container.low-risk {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .result-container.high-risk .result-title {
+            color: #c62828;
+        }
+
+        .result-container.low-risk .result-title {
+            color: #2e7d32;
+        }
+
+        .probability-bar {
+            margin: 15px 0;
+        }
+
+        .probability-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .confidence-score {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Stroke Risk Predictor</h1>
+            <p>ML-Based Health Assessment System</p>
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Age (years)</label>
+                    <input type="number" id="age" name="age" min="0" max="120" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="avg_glucose_level">Avg Glucose Level (mg/dL)</label>
+                    <input type="number" id="avg_glucose_level" name="avg_glucose_level" min="0" step="0.1" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="bmi">BMI (kg/m²)</label>
+                    <input type="number" id="bmi" name="bmi" min="0" max="100" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="work_type">Work Type</label>
+                    <select id="work_type" name="work_type" required>
+                        <option value="Private">Private</option>
+                        <option value="Self-employed">Self-employed</option>
+                        <option value="Govt_job">Government Job</option>
+                        <option value="children">Children</option>
+                        <option value="Never_worked">Never Worked</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ever_married">Ever Married</label>
+                    <select id="ever_married" name="ever_married" required>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="smoking_status">Smoking Status</label>
+                    <select id="smoking_status" name="smoking_status" required>
+                        <option value="never smoked">Never Smoked</option>
+                        <option value="formerly smoked">Formerly Smoked</option>
+                        <option value="smokes">Smokes</option>
+                        <option value="Unknown">Unknown</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Medical History</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="hypertension" name="hypertension" value="1">
+                        <label for="hypertension">Hypertension</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="heart_disease" name="heart_disease" value="1">
+                        <label for="heart_disease">Heart Disease</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">Predict Stroke Risk</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your health data...</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-title" id="resultTitle"></div>
+            
+            <div class="probability-bar">
+                <div class="probability-bar-label">
+                    <span>No Stroke Risk</span>
+                    <span id="probNoStroke">0%</span>
+                </div>
+                <div class="bar">
+                    <div class="bar-fill" id="barNoStroke" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="probability-bar">
+                <div class="probability-bar-label">
+                    <span>Stroke Risk</span>
+                    <span id="probStroke">0%</span>
+                </div>
+                <div class="bar">
+                    <div class="bar-fill" id="barStroke" style="width: 0%; background: linear-gradient(90deg, #ff6b6b, #ee5a6f);"></div>
+                </div>
+            </div>
+
+            <div class="confidence-score">
+                <strong>Model Confidence: <span id="confidence">0</span>%</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultContainer = document.getElementById('resultContainer');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear previous messages
+            errorMessage.classList.remove('show');
+            resultContainer.classList.remove('show');
+
+            // Show loading
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+
+            try {
+                // Collect form data
+                const formData = new FormData(form);
+                const data = {
+                    age: formData.get('age'),
+                    hypertension: formData.get('hypertension') ? 1 : 0,
+                    heart_disease: formData.get('heart_disease') ? 1 : 0,
+                    ever_married: formData.get('ever_married'),
+                    work_type: formData.get('work_type'),
+                    avg_glucose_level: formData.get('avg_glucose_level'),
+                    bmi: formData.get('bmi'),
+                    smoking_status: formData.get('smoking_status')
+                };
+
+                // Send to backend
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResult(result);
+                } else {
+                    showError(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            } finally {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayResult(result) {
+            const isHighRisk = result.prediction === 1;
+            const resultClass = isHighRisk ? 'high-risk' : 'low-risk';
+            const riskIcon = isHighRisk ? '⚠️' : '✅';
+
+            resultContainer.className = `result-container show ${resultClass}`;
+            document.getElementById('resultTitle').textContent = `${riskIcon} ${result.prediction_label}`;
+            
+            // Update probability bars with animation
+            const probNoStroke = Math.round(result.probability_no_stroke * 100);
+            const probStroke = Math.round(result.probability_stroke * 100);
+            
+            document.getElementById('probNoStroke').textContent = `${probNoStroke}%`;
+            document.getElementById('probStroke').textContent = `${probStroke}%`;
+            document.getElementById('barNoStroke').style.width = `${probNoStroke}%`;
+            document.getElementById('barStroke').style.width = `${probStroke}%`;
+            
+            document.getElementById('confidence').textContent = Math.round(result.confidence);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+    </script>
+</body>
+</html>
