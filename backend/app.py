@@ -64,7 +64,7 @@ def predict():
         }
         
         return jsonify(result)
-    
+
     except Exception as e:
         return jsonify({
             'success': False,
